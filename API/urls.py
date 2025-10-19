@@ -4,7 +4,7 @@ from .views import (
     DeleteView,
     DetailsView,
     UpdateView,
-    ListView
+    ListView,
 )
 
 urlpatterns=[
