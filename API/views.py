@@ -1,65 +1,53 @@
-from django.shortcuts import render
-from rest_framework import generics
-from models import Inventory
-from Serializers import InventorySerializer
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
-from pagination import CustomPagination
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import InventoryItem, TransactionLog
+from .serializers import InventoryItemSerializer, TransactionLogSerializer
 
-class CreateView(generics.CreateAPIView):
-    queryset= Inventory.objects.all()
-    seralizers_class=InventorySerializer
-    permission_classes= [IsAuthenticatedOrReadOnly]
-    authentication_classes=[TokenAuthentication]
-    pagination_class= CustomPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['name','price' ]
-    search_fields = ['name', 'price']
-    ordering_fields = ['name', 'Createdat']
+class InventoryItemViewSet(viewsets.ModelViewSet):
+    queryset = InventoryItem.objects.all().order_by("-updated_at")
+    serializer_class = InventoryItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        item = serializer.save(created_by=self.request.user, updated_by=self.request.user)
+        TransactionLog.objects.create(
+            user=self.request.user,
+            item=item,
+            action="ADD",
+            details=f"Created item {item.name}"
+        )
+
+    def perform_update(self, serializer):
+        item = serializer.save(updated_by=self.request.user)
+        TransactionLog.objects.create(
+            user=self.request.user,
+            item=item,
+            action="UPDATE",
+            details=f"Updated item {item.name}"
+        )
+
+    def perform_destroy(self, instance):
+        TransactionLog.objects.create(
+            user=self.request.user,
+            item=instance,
+            action="DELETE",
+            details=f"Deleted item {instance.name}"
+        )
+        instance.delete()
+
+    @action(detail=False, methods=["get"])
+    def levels(self, request):
+        """View current inventory levels"""
+        items = InventoryItem.objects.all()
+        data = [
+            {"item": item.name, "quantity": item.quantity}
+            for item in items
+        ]
+        return Response(data)
 
 
-class DetailsView(generics.RetrieveAPIView):
-    queryset= Inventory.objects.all()
-    seralizers_class=InventorySerializer
-    permission_classes= [IsAuthenticatedOrReadOnly]
-    authentication_classes=[TokenAuthentication]
-    pagination_class= CustomPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['name','price' ]
-    search_fields = ['name', 'price']
-    ordering_fields = ['name', 'Createdat']
-
-class UpdateView(generics.UpdateAPIView):
-    queryset= Inventory.objects.all()
-    seralizers_class=InventorySerializer
-    permission_classes= [IsAuthenticatedOrReadOnly]
-    authentication_classes=[TokenAuthentication]
-    pagination_class= CustomPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['name','price' ]
-    search_fields = ['name', 'price']
-    ordering_fields = ['name', 'Createdat']
-
-
-class DeleteView(generics.DestroyAPIView):
-    queryset= Inventory.objects.all()
-    seralizers_class=InventorySerializer
-    permission_classes= [IsAuthenticatedOrReadOnly]
-    authentication_classes=[TokenAuthentication]
-    pagination_class= CustomPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['name','price' ]
-    search_fields = ['name', 'price']
-    ordering_fields = ['name', 'Createdat']
-
-class ListView(generics.ListAPIView):
-    queryset= Inventory.objects.all()
-    seralizers_class=InventorySerializer
-    permission_classes= [IsAuthenticatedOrReadOnly]
-    authentication_classes=[TokenAuthentication]
-    pagination_class= CustomPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['name','price' ]
-    search_fields = ['name', 'price']
-    ordering_fields = ['name', 'Createdat']
+class TransactionLogViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = TransactionLog.objects.all().order_by("-timestamp")
+    serializer_class = TransactionLogSerializer
+    permission_classes = [permissions.IsAuthenticated]
