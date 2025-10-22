@@ -3,11 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import InventoryItem, TransactionLog
 from .serializers import InventoryItemSerializer, TransactionLogSerializer
+from pagination import CustomPagination
 
 class InventoryItemViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all().order_by("-updated_at")
     serializer_class = InventoryItemSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class=CustomPagination
 
     def perform_create(self, serializer):
         item = serializer.save(created_by=self.request.user, updated_by=self.request.user)
@@ -51,3 +53,4 @@ class TransactionLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = TransactionLog.objects.all().order_by("-timestamp")
     serializer_class = TransactionLogSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class=CustomPagination
