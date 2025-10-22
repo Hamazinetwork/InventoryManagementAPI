@@ -1,13 +1,24 @@
 from rest_framework import serializers
-from models import quantity, description, createdat, updatedat, name, price
-from models import Inventory
+from django.contrib.auth.models import User
+from .models import InventoryItem, TransactionLog
 
-class InventorySerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model= Inventory
-        field=[id, quantity,description, createdat, updatedat,name, price]
+        model = User
+        fields = ["id", "username", "email"]
 
-    def validate(self, data):
-        if len(data['title']) < 5:
-            raise serializers.ValidationError("Enter atleast 5 characters")
-        return data
+class InventoryItemSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    updated_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = InventoryItem
+        fields = "__all__"
+
+class TransactionLogSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    item = serializers.StringRelatedField()
+
+    class Meta:
+        model = TransactionLog
+        fields = "__all__"
