@@ -24,7 +24,8 @@ class TransactionLog(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
-    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    quantity_changed = models.IntegerField(default=0)
     timestamp = models.DateTimeField(auto_now_add=True)
     details = models.TextField(blank=True)
 

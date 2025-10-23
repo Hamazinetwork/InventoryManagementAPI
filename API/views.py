@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import InventoryItem, TransactionLog
 from .serializers import InventoryItemSerializer, TransactionLogSerializer
-from pagination import CustomPagination
+from .pagination import CustomPagination
 
 class InventoryItemViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all().order_by("-updated_at")
