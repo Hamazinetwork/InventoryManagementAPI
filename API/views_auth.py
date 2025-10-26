@@ -4,15 +4,29 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .models import InventoryItem
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def register_view(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("login")
-    else:
-        form = UserCreationForm()
-    return render(request, "register.html", {"form": form})
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create(username=username, password=make_password(password))
+    user.save()
+
+    return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+
 
 def login_view(request):
     if request.method == "POST":
