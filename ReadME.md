@@ -164,33 +164,3 @@ Deploy API on Heroku/PythonAnywhere.
 Test in production.
 
 
-Write README with setup and usage instructions.
-
-
-
-{
-    "username":"Rahman182",
-    "password":"Fastpassword",
-    "confirm_password":"Fastpassword"
-}
-
-  "username":"Rahman182",
-	"password":"Fastpassword"
-
-{
-}
-
-{
-  "name":"Mechanical Fastners",
-  "description":"Used to join to or more object together mechanically",
-  "quantity":20,
-  "price":40.00
-}
-
-
-{
-  "name":"Combine Cycle Turbine",
-  "description":"Covert exhaust from gas into steam to boil the water to power another turbine with heat recovery steam generator",
-  "quantity":8,
-  "price":5000.00
-}
